@@ -1,26 +1,23 @@
 <?php
 
-use App\Http\Controllers\OrderController;
-use App\Http\Controllers\PaymentController;
-use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\PostController;
+use App\Http\Controllers\PostReportController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
-    return view('welcome');
+    return redirect()->route('posts.index');
 });
 
-Route::get('/dashboard', function () {
-    return view('dashboard');
-})->middleware(['auth', 'verified'])->name('dashboard');
+// REPORT ROUTES: must come BEFORE the resource route,
+// otherwise /posts/reports is read as /posts/{post}.
+Route::get('/posts/reports', [PostReportController::class, 'index'])
+    ->name('posts.reports.index');
 
-Route::middleware('auth')->group(function () {
-    Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
-    Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
-    Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+Route::get('/posts/reports/pdf', [PostReportController::class, 'exportPdf'])
+    ->name('posts.reports.pdf');
 
-    // Management pages: authentication required
-    Route::resource('orders', OrderController::class)->only(['index', 'create', 'store', 'show']);
-    Route::post('orders/{order}/payments', [PaymentController::class, 'store'])->name('orders.payments.store');
-});
+Route::get('/posts/reports/csv', [PostReportController::class, 'exportCsv'])
+    ->name('posts.reports.csv');
 
-require __DIR__.'/auth.php';
+// CRUD ROUTES
+Route::resource('posts', PostController::class);
